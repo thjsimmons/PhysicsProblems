@@ -1,26 +1,43 @@
+#======================================================================
+# Github: https://github.com/thjsimmons
+#======================================================================
+
+# Solution to problem: https://brilliant.org/problems/nonlinear-resonance/
+
 import numpy as np
 from scipy.integrate import odeint
 from numpy import sin, cos, pi, array
 import matplotlib.pyplot as plt
 
-
-def deriv(z, t): # pass in initial conditions, time interval 
-
-    x,dxdt = z # initial conditions 
-    wext = 1.54
-    dx2dt2 = -(2*x + 0.01*x**3) - 0.05*dxdt + np.sin(wext * t)
-
-    return np.array([dxdt, dx2dt2])
-
+# Plot max value in solution over different values of wext 
 
 init = array([0, 0])
 time = np.linspace(0.0, 1000, 1000*10)
-sol = odeint(deriv, init, time)
+wexts = np.linspace(0.0, 5, 500)
+amps = np.zeros(wexts.shape[0])
 
-print(sol.shape)
+# Get max amplitude of x(t) for each external force frequency: 
+for i in range(wexts.shape[0]):
+    print "i = ", i
+    def deriv(z, t): # function to integrate 
+        x,dxdt = z # initial conditions 
+        dx2dt2 = -(2*x + 0.01*x**3) - 0.05*dxdt + np.sin(wexts[i] * t) # x equation of motion
+        return np.array([dxdt, dx2dt2])
 
-plt.xlim([0, 1000])
-plt.ylim([-20, 20])
-plt.plot(time, sol[:, 0], label='hi')
-plt.show()
+    sol = odeint(deriv, init, time) 
+    amps[i] = np.max(np.abs(sol[:, 0])) # get max amplitude 
+
+wres = wexts[np.argmax(amps)] # Get resonant frequency 
+print "Resonant frequency = ", wres, " rad/s"
+
+fig = plt.figure()
+plt.title("Max Amplitude vs. Frequency (rad/s)")
+plt.xlabel("Frequency (rad/s)")
+plt.ylabel("Max Amplitude of x(t)")
+
+plt.xlim([0, 5])
+plt.ylim([0, 20])
+plt.plot(wexts, amps, label='hi')
+fig.savefig("NonlinearSpring.jpg")
+plt.show() 
 
